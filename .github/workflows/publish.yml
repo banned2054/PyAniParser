@@ -1,0 +1,25 @@
+name: publish.yml
+
+on:
+  release:
+    types: [ published ]  # 发 GitHub Release 时触发；也可改成 push tags
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    environment: pypi         # ⬅️ 与登记的环境名一致
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+
+      - name: Build sdist & wheel
+        run: uvx --from build python -m build
+
+      - name: Publish to PyPI via OIDC
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist   # 默认就是 dist，可省略
+          skip-existing: true
