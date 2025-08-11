@@ -5,7 +5,6 @@ description = "Python wrapper for Banned.AniParser (.NET) with pythonnet"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "hatchling>=1.27.0",
     "pythonnet>=3.0.5",
 ]
 
@@ -14,18 +13,27 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.scripts]
-pyaniparse = "pyaniparser.cli:main"
+pyaniparser = "pyaniparser.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/pyaniparse"]
+# ⬅️ 修正包路径
+packages = ["src/pyaniparser"]
+# 额外把非 .py 文件塞进 wheel
 include = [
     "src/pyaniparser/dotnet.runtimeconfig.json",
     "src/pyaniparser/lib/*.dll",
+    "README.md",
 ]
+
+[tool.hatch.build.targets.sdist]
+# 让 sdist 也包含源码和资源
+include = [
+    "src/pyaniparser/**",
+    "README.md",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
 [dependency-groups]
-dev = [
-    "pytest>=8.4.1",
-]
+dev = ["pytest>=8.4.1"]
