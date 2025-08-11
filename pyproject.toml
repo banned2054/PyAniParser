@@ -1,0 +1,31 @@
+[project]
+name = "pyaniparser"
+version = "0.0.1"
+description = "Python wrapper for Banned.AniParser (.NET) with pythonnet"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "hatchling>=1.27.0",
+    "pythonnet>=3.0.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+pyaniparse = "pyaniparser.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pyaniparse"]
+include = [
+    "src/pyaniparser/dotnet.runtimeconfig.json",
+    "src/pyaniparser/lib/*.dll",
+]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+]
