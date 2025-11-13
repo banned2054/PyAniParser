@@ -44,10 +44,12 @@ _GLOBALIZATION = {
 
 class AniParser :
     """
-    Native AOT (ctypes) 版本。
-    接口与旧版保持一致：
       - parse(title: str) -> Optional[ParseResult]
       - parse_batch(titles: Iterable[str]) -> Iterator[ParseResult]
+      - get_parser_list() -> list[str]
+      - get_translation_parser_list() -> list[str]
+      - get_transfer_parser_list() -> list[str]
+      - get_compression_parser_list() -> list[str]
     """
 
     def __init__(self, globalization: str = "NotChange", libpath: str | None = None) -> None :
@@ -55,11 +57,11 @@ class AniParser :
             raise ValueError(f"Unsupported globalization: {globalization}")
 
         if libpath is None :
+            # 注意：如果 _default_libname() 已经返回绝对路径，就不要再 join 一次
             libpath = os.path.join(os.path.dirname(__file__), _default_libname())
 
         self._lib = ctypes.CDLL(libpath)
 
-        # 签名
         self._lib.Ani_Init.argtypes = [ctypes.c_int]
         self._lib.Ani_Init.restype = ctypes.c_void_p
 
@@ -71,6 +73,18 @@ class AniParser :
 
         self._lib.Ani_ParseBatch.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
         self._lib.Ani_ParseBatch.restype = ctypes.c_void_p
+
+        self._lib.Ani_GetParserList.argtypes = [ctypes.c_void_p]
+        self._lib.Ani_GetParserList.restype = ctypes.c_void_p
+
+        self._lib.Ani_GetTranslationParserList.argtypes = [ctypes.c_void_p]
+        self._lib.Ani_GetTranslationParserList.restype = ctypes.c_void_p
+
+        self._lib.Ani_GetTransferParserList.argtypes = [ctypes.c_void_p]
+        self._lib.Ani_GetTransferParserList.restype = ctypes.c_void_p
+
+        self._lib.Ani_GetCompressionParserList.argtypes = [ctypes.c_void_p]
+        self._lib.Ani_GetCompressionParserList.restype = ctypes.c_void_p
 
         self._lib.Ani_Free.argtypes = [ctypes.c_void_p]
         self._lib.Ani_Free.restype = None
@@ -126,6 +140,57 @@ class AniParser :
         for item in arr :
             yield from_json(item)
 
-    # 旧接口里有这个方法；如果 AOT 未导出，可选择去掉或抛异常
+    def _call_string_array(self, func) -> list[str] :
+        """
+        调用返回 UTF-8 JSON 字符串数组的 native 函数。
+        - func(self._handle) -> void* / IntPtr
+        - 返回: list[str]
+        - 如果返回 {"error": "..."} 则抛 RuntimeError
+        """
+        if self._closed :
+            raise RuntimeError("AniParser already closed")
+
+        ptr = func(self._handle)
+        if not ptr :
+            return []
+        try :
+            s = ctypes.string_at(ptr).decode("utf-8")
+        finally :
+            self._lib.Ani_Free(ptr)
+
+        obj = json.loads(s) if s else []
+
+        # 兼容 ErrorDto
+        if isinstance(obj, dict) and "error" in obj :
+            raise RuntimeError(obj["error"])
+
+        if obj is None :
+            return []
+        if not isinstance(obj, list) :
+            raise TypeError(f"Unexpected response type: {type(obj)!r}, value={obj!r}")
+
+        return [str(x) for x in obj]
+
+    def get_parser_list(self) -> list[str] :
+        """
+        获取当前有的所有字幕组、压制组以及搬运组的列表（字典顺序）。
+        """
+        return self._call_string_array(self._lib.Ani_GetParserList)
+
     def get_translation_parser_list(self) -> list[str] :
-        raise NotImplementedError("Not available in Native AOT build.")
+        """
+        获取当前有的所有字幕组的列表（字典顺序）。
+        """
+        return self._call_string_array(self._lib.Ani_GetTranslationParserList)
+
+    def get_transfer_parser_list(self) -> list[str] :
+        """
+        获取当前有的所有搬运组的列表（字典顺序）。
+        """
+        return self._call_string_array(self._lib.Ani_GetTransferParserList)
+
+    def get_compression_parser_list(self) -> list[str] :
+        """
+        获取当前有的所有压制组的列表（字典顺序）。
+        """
+        return self._call_string_array(self._lib.Ani_GetCompressionParserList)
