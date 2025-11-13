@@ -62,3 +62,22 @@ class ParseResult :
     source: str
     web_source: str
     media_type: EnumMediaType
+
+
+def from_json(d: dict) -> ParseResult :
+    """把 JSON dict 转换为 ParseResult"""
+    return ParseResult(
+            title = d["Title"],
+            episode = d.get("Episode"),
+            version = d.get("Version", 1),
+            start_episode = None,
+            end_episode = None,
+            group = d.get("Group", ""),
+            group_type = EnumGroupType(d["GroupType"]),
+            language = EnumLanguage(d["Language"]),
+            subtitle_type = EnumSubtitleType(d["SubtitleType"]),
+            resolution = EnumResolution(d["Resolution"]),
+            source = d.get("Source", ""),
+            web_source = d.get("WebSource", ""),
+            media_type = EnumMediaType(d["MediaType"]),
+    )

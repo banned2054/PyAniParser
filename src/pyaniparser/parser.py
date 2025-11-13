@@ -1,80 +1,131 @@
+from __future__ import annotations
+
+import ctypes
+import json
+import os
+import platform
+import sys
 from typing import Iterable, Iterator, Optional
 
-from ._runtime import ensure_loaded
-from .types import EnumGroupType, EnumLanguage, EnumMediaType, EnumResolution, EnumSubtitleType, ParseResult
+from .types import ParseResult, from_json
+
+
+def _default_libname() -> str :
+    system = sys.platform
+    arch = platform.machine().lower()
+
+    # 归一化架构名
+    if arch in ("x86_64", "amd64") :
+        arch = "amd64"
+    elif arch in ("arm64", "aarch64") :
+        arch = "arm64"
+    else :
+        raise RuntimeError(f"Unsupported architecture: {arch}")
+
+    if system.startswith("win") :
+        filename = f"Banned.AniParser.Native-windows-{arch}.dll"
+    elif system == "darwin" :
+        filename = f"Banned.AniParser.Native-macos-{arch}.dylib"
+    elif system.startswith("linux") :
+        filename = f"Banned.AniParser.Native-linux-{arch}.so"
+    else :
+        raise RuntimeError(f"Unsupported platform: {system}")
+
+    # 拼出完整路径 (lib 目录)
+    return os.path.join(os.path.dirname(__file__), "lib", filename)
+
+
+_GLOBALIZATION = {
+    "Simplified"  : 1,  # 简体
+    "Traditional" : 2,  # 繁体
+    "NotChange"   : 0,  # 不改变
+}
 
 
 class AniParser :
     """
-    轻量包装 .NET 的 Banned.AniParser，提供 parse / parse_batch 方法。
+    Native AOT (ctypes) 版本。
+    接口与旧版保持一致：
+      - parse(title: str) -> Optional[ParseResult]
+      - parse_batch(titles: Iterable[str]) -> Iterator[ParseResult]
     """
 
-    # 缓存 .NET 类型，避免重复 import 成本
-    _AniParser = None
-    _ParserOptions = None
-    _EnumChineseGlobalization = None
-    _Action = None
-
-    @classmethod
-    def _load_dotnet_types(cls) :
-        if cls._AniParser is None :
-            ensure_loaded()
-            from Banned.AniParser import AniParser as _AniParser, ParserOptions as _ParserOptions
-            from Banned.AniParser.Models.Enums import EnumChineseGlobalization as _ECG
-            from System import Action as _Action
-            cls._AniParser = _AniParser
-            cls._ParserOptions = _ParserOptions
-            cls._EnumChineseGlobalization = _ECG
-            cls._Action = _Action
-
-    def __init__(self, globalization: str = "NotChange") :
-        """
-        :param globalization: "Simplified" / "Traditional" / "NotChange"
-        """
-        self._load_dotnet_types()
-        self._mapping = {
-            "Simplified"  : self._EnumChineseGlobalization.Simplified,
-            "Traditional" : self._EnumChineseGlobalization.Traditional,
-            "NotChange"   : self._EnumChineseGlobalization.NotChange,
-        }
-        if globalization not in self._mapping :
+    def __init__(self, globalization: str = "NotChange", libpath: str | None = None) -> None :
+        if globalization not in _GLOBALIZATION :
             raise ValueError(f"Unsupported globalization: {globalization}")
 
-        def _cfg(opts) :
-            opts.Globalization = self._mapping[globalization]
+        if libpath is None :
+            libpath = os.path.join(os.path.dirname(__file__), _default_libname())
 
-        # 以配置函数构造 .NET AniParser
-        self._parser = self._AniParser(self._Action[self._ParserOptions](_cfg))
+        self._lib = ctypes.CDLL(libpath)
 
-    @staticmethod
-    def _convert(r) -> ParseResult :
-        import System
-        return ParseResult(
-                title = r.Title,
-                episode = (System.Convert.ToDouble(r.Episode) if r.Episode is not None else None),
-                version = int(r.Version),
-                start_episode = int(r.StartEpisode) if r.StartEpisode is not None else None,
-                end_episode = int(r.EndEpisode) if r.EndEpisode is not None else None,
-                group = r.Group,
-                group_type = EnumGroupType(r.GroupType.GetHashCode()),
-                language = EnumLanguage(r.Language.GetHashCode()),
-                subtitle_type = EnumSubtitleType(r.SubtitleType.GetHashCode()),
-                resolution = EnumResolution(r.Resolution.GetHashCode()),
-                source = r.Source,
-                web_source = r.WebSource,
-                media_type = EnumMediaType(r.MediaType.GetHashCode()),
-        )
+        # 签名
+        self._lib.Ani_Init.argtypes = [ctypes.c_int]
+        self._lib.Ani_Init.restype = ctypes.c_void_p
+
+        self._lib.Ani_Destroy.argtypes = [ctypes.c_void_p]
+        self._lib.Ani_Destroy.restype = None
+
+        self._lib.Ani_Parse.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+        self._lib.Ani_Parse.restype = ctypes.c_void_p
+
+        self._lib.Ani_ParseBatch.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
+        self._lib.Ani_ParseBatch.restype = ctypes.c_void_p
+
+        self._lib.Ani_Free.argtypes = [ctypes.c_void_p]
+        self._lib.Ani_Free.restype = None
+
+        h = self._lib.Ani_Init(_GLOBALIZATION[globalization])
+        if not h :
+            raise RuntimeError("Ani_Init failed")
+        self._handle = ctypes.c_void_p(h)
+        self._closed = False
+
+    def close(self) -> None :
+        if not self._closed :
+            try :
+                self._lib.Ani_Destroy(self._handle)
+            finally :
+                self._closed = True
+
+    def __del__(self) -> None :
+        try :
+            self.close()
+        except Exception :
+            pass
 
     def parse(self, title: str) -> Optional[ParseResult] :
-        r = self._parser.Parse(title)
-        return self._convert(r) if r is not None else None
+        if self._closed :
+            raise RuntimeError("AniParser already closed")
+
+        ptr = self._lib.Ani_Parse(self._handle, title.encode("utf-8"))
+        if not ptr :
+            return None
+        try :
+            s = ctypes.string_at(ptr).decode("utf-8")
+        finally :
+            self._lib.Ani_Free(ptr)
+
+        obj = json.loads(s)
+        return from_json(obj) if obj is not None else None
 
     def parse_batch(self, titles: Iterable[str]) -> Iterator[ParseResult] :
-        from System import Array, String
-        arr = Array[String](list(titles))
-        for r in self._parser.ParseBatch(arr) :
-            yield self._convert(r)
+        if self._closed :
+            raise RuntimeError("AniParser already closed")
 
+        payload = json.dumps(list(titles), ensure_ascii = False).encode("utf-8")
+        ptr = self._lib.Ani_ParseBatch(self._handle, payload)
+        if not ptr :
+            return
+        try :
+            s = ctypes.string_at(ptr).decode("utf-8")
+        finally :
+            self._lib.Ani_Free(ptr)
+
+        arr = json.loads(s) or []
+        for item in arr :
+            yield from_json(item)
+
+    # 旧接口里有这个方法；如果 AOT 未导出，可选择去掉或抛异常
     def get_translation_parser_list(self) -> list[str] :
-        """返回按字典序排序后的字幕组名称列表（来自 .NET AniParser.GetTranslationParserList）。"""
-        return [str(s) for s in self._parser.GetTranslationParserList()]
+        raise NotImplementedError("Not available in Native AOT build.")
