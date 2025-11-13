@@ -1,8 +1,9 @@
-name: publish.yml
+name: publish
 
 on:
   release:
-    types: [ published ]  # 发 GitHub Release 时触发；也可改成 push tags
+    types: [ published ]   # 发 GitHub Release 时触发
+
 permissions:
   id-token: write
   contents: read
@@ -10,9 +11,29 @@ permissions:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
-    environment: pypi         # ⬅️ 与登记的环境名一致
+    environment: pypi
     steps:
       - uses: actions/checkout@v4
+
+      # ⭐ 从 Banned.AniParser 的 latest release 下载 native 库到 src/pyaniparser/lib
+      - name: Download latest Banned.AniParser native libs
+        run: |
+          set -e
+          mkdir -p src/pyaniparser/lib
+
+          api="https://api.github.com/repos/banned2054/Banned.AniParser/releases/latest"
+
+          # ubuntu-latest 默认带 jq
+          curl -s "$api" \
+          | jq -r '.assets[]
+                   | select(.name | startswith("Banned.AniParser.Native-"))
+                   | .browser_download_url' \
+          | while read -r url; do
+              file="src/pyaniparser/lib/$(basename "$url")"
+              echo "Downloading $url -> $file"
+              curl -L "$url" -o "$file"
+            done
+
       - uses: astral-sh/setup-uv@v3
 
       - name: Build sdist & wheel
@@ -21,5 +42,5 @@ jobs:
       - name: Publish to PyPI via OIDC
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist   # 默认就是 dist，可省略
+          packages-dir: dist
           skip-existing: true
