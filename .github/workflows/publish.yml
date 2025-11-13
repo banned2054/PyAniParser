@@ -1,46 +1,103 @@
 name: publish
 
 on:
-  release:
-    types: [ published ]   # 发 GitHub Release 时触发
+    release:
+        types: [published] # 发 GitHub Release 时触发
 
 permissions:
-  id-token: write
-  contents: read
+    id-token: write
+    contents: read
 
 jobs:
-  build-and-publish:
-    runs-on: ubuntu-latest
-    environment: pypi
-    steps:
-      - uses: actions/checkout@v4
+    build-wheels:
+        name: build (${{ matrix.platform }})
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os: windows-latest
+                      platform: windows-amd64
+                    - os: ubuntu-latest
+                      platform: linux-amd64
+                    - os: ubuntu-latest
+                      platform: linux-arm64
+                    - os: macos-15-intel
+                      platform: macos-amd64
+                    - os: macos-latest
+                      platform: macos-arm64
 
-      # ⭐ 从 Banned.AniParser 的 latest release 下载 native 库到 src/pyaniparser/lib
-      - name: Download latest Banned.AniParser native libs
-        run: |
-          set -e
-          mkdir -p src/pyaniparser/lib
+        steps:
+            - uses: actions/checkout@v4
 
-          api="https://api.github.com/repos/banned2054/Banned.AniParser/releases/latest"
+            - name: Download native library for current platform
+              shell: bash
+              run: |
+                  set -eux
 
-          # ubuntu-latest 默认带 jq
-          curl -s "$api" \
-          | jq -r '.assets[]
-                   | select(.name | startswith("Banned.AniParser.Native-"))
-                   | .browser_download_url' \
-          | while read -r url; do
-              file="src/pyaniparser/lib/$(basename "$url")"
-              echo "Downloading $url -> $file"
-              curl -L "$url" -o "$file"
-            done
+                  # 获取最新 Release 的 tag，例如 "v0.2.5"
+                  tag=$(curl -s https://api.github.com/repos/banned2054/Banned.AniParser/releases/latest \
+                    | grep '"tag_name"' \
+                    | sed -E 's/.*"tag_name":\s*"([^"]+)".*/\1/')
 
-      - uses: astral-sh/setup-uv@v3
+                  echo "Latest release tag = $tag"
 
-      - name: Build sdist & wheel
-        run: uvx --from build python -m build
+                  base="https://github.com/banned2054/Banned.AniParser/releases/download/$tag"
 
-      - name: Publish to PyPI via OIDC
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist
-          skip-existing: true
+                  # 根据 platform 选择文件名（与你 Release 里的名字一一对应）
+                  case "${{ matrix.platform }}" in
+                    windows-amd64)
+                      fname="Banned.AniParser.Native-windows-amd64.dll"
+                      ;;
+                    linux-amd64)
+                      fname="Banned.AniParser.Native-linux-amd64.so"
+                      ;;
+                    linux-arm64)
+                      fname="Banned.AniParser.Native-linux-arm64.so"
+                      ;;
+                    macos-amd64)
+                      fname="Banned.AniParser.Native-macos-amd64.dylib"
+                      ;;
+                    macos-arm64)
+                      fname="Banned.AniParser.Native-macos-arm64.dylib"
+                      ;;
+                    *)
+                      echo "Unknown platform: ${{ matrix.platform }}" >&2
+                      exit 1
+                      ;;
+                  esac
+
+                  mkdir -p src/pyaniparser/lib
+                  rm -f src/pyaniparser/lib/* || true
+
+                  echo "Downloading $base/$fname"
+                  curl -fL "$base/$fname" -o "src/pyaniparser/lib/$fname"
+
+            - uses: astral-sh/setup-uv@v3
+
+            - name: Build wheel (current platform)
+              run: uvx --from build python -m build --wheel --outdir dist
+
+            - name: Upload wheel artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: wheels-${{ matrix.platform }}
+                  path: dist/*.whl
+
+    publish:
+        needs: build-wheels
+        runs-on: ubuntu-latest
+        environment: pypi
+
+        steps:
+            - uses: actions/download-artifact@v4
+              with:
+                  pattern: wheels-*
+                  path: dist
+                  merge-multiple: true
+
+            - name: Publish to PyPI via OIDC
+              uses: pypa/gh-action-pypi-publish@release/v1
+              with:
+                  packages-dir: dist
+                  skip-existing: true
