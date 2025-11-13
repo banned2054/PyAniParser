@@ -33,12 +33,15 @@ jobs:
             - name: Download native library for current platform
               shell: bash
               run: |
-                  set -eux
+                  set -euxo pipefail
 
-                  # 获取最新 Release 的 tag，例如 "v0.2.5"
-                  tag=$(curl -s https://api.github.com/repos/banned2054/Banned.AniParser/releases/latest \
-                    | grep '"tag_name"' \
-                    | sed -E 's/.*"tag_name":\s*"([^"]+)".*/\1/')
+                  # 获取最新 Release 的 tag，例如 v0.2.5
+                  tag=$(
+                    curl -s https://api.github.com/repos/banned2054/Banned.AniParser/releases/latest \
+                      | grep '"tag_name"' \
+                      | head -n 1 \
+                      | cut -d '"' -f 4
+                  )
 
                   echo "Latest release tag = $tag"
 
