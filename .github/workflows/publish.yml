@@ -18,15 +18,23 @@ jobs:
                 include:
                     -   os: windows-latest
                         platform: windows-amd64
+                        wheel-tag: py3-none-win_amd64
+
                     -   os: ubuntu-latest
                         platform: linux-amd64
+                        wheel-tag: py3-none-manylinux_2_17_x86_64
+
                     -   os: ubuntu-latest
                         platform: linux-arm64
+                        wheel-tag: py3-none-manylinux_2_17_aarch64
+
                     -   os: macos-15-intel
                         platform: macos-amd64
+                        wheel-tag: py3-none-macosx_10_9_x86_64
+
                     -   os: macos-latest
                         platform: macos-arm64
-
+                        wheel-tag: py3-none-macosx_11_0_arm64
         steps:
             -   uses: actions/checkout@v4
 
@@ -72,13 +80,14 @@ jobs:
                     
                     mkdir -p src/pyaniparser/lib
                     rm -f src/pyaniparser/lib/* || true
-                        
                     echo "Downloading $base/$fname"
                     curl -fL "$base/$fname" -o "src/pyaniparser/lib/$fname"
 
             -   uses: astral-sh/setup-uv@v3
 
             -   name: Build wheel (current platform)
+                env:
+                    PYANIPARSER_WHEEL_TAG: ${{ matrix.wheel-tag }}
                 run: uvx --from build python -m build --wheel --outdir dist
 
             -   name: Upload wheel artifact
