@@ -36,7 +36,7 @@ jobs:
                         platform: macos-arm64
                         wheel-tag: py3-none-macosx_11_0_arm64
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
 
             -   name: Download native library for current platform
                 shell: bash
@@ -83,7 +83,7 @@ jobs:
                     echo "Downloading $base/$fname"
                     curl -fL "$base/$fname" -o "src/pyaniparser/lib/$fname"
 
-            -   uses: astral-sh/setup-uv@v3
+            -   uses: astral-sh/setup-uv@v7
 
             -   name: Build wheel (current platform)
                 env:
@@ -91,7 +91,7 @@ jobs:
                 run: uvx --from build python -m build --wheel --outdir dist
 
             -   name: Upload wheel artifact
-                uses: actions/upload-artifact@v4
+                uses: actions/upload-artifact@v6
                 with:
                     name: wheels-${{ matrix.platform }}
                     path: dist/*.whl
@@ -102,7 +102,7 @@ jobs:
         environment: pypi
 
         steps:
-            -   uses: actions/download-artifact@v4
+            -   uses: actions/download-artifact@74
                 with:
                     pattern: wheels-*
                     path: dist
