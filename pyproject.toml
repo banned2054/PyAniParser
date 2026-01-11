@@ -1,6 +1,6 @@
 [project]
 name = "pyaniparser"
-version = "0.0.8"
+version = "0.3.0"
 description = "Python wrapper for Banned.AniParser (NativeAOT C ABI)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -30,7 +30,7 @@ include = [
 testpaths = ["tests"]
 
 [dependency-groups]
-dev = ["pytest>=9.0.1"]
+dev = ["pytest>=9.0.2"]
 
 # ★ 在 wheel target 下挂钩子
 [tool.hatch.build.targets.wheel.hooks.custom]
