@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Optional
+from typing import Optional, List
 
 
 class EnumGroupType(IntEnum) :
@@ -48,8 +48,16 @@ class EnumSubtitleType(IntEnum) :
 
 
 @dataclass
+class LocalizedTitle :
+    language: str
+    value: str
+
+
+@dataclass
 class ParseResult :
+    origin_title: str
     title: str
+    titles: List[LocalizedTitle]
     episode: Optional[float]
     version: int
     start_episode: Optional[int]
@@ -62,22 +70,39 @@ class ParseResult :
     source: str
     web_source: str
     media_type: EnumMediaType
+    video_codec: str
+    audio_codec: str
+    color_bit_depth: int
 
 
 def from_json(d: dict) -> ParseResult :
-    """把 JSON dict 转换为 ParseResult"""
+    # 处理 LocalizedTitle 列表
+    raw_titles = d.get("Titles")
+    parsed_titles = []
+    if raw_titles :
+        for t in raw_titles :
+            parsed_titles.append(LocalizedTitle(
+                language = t.get("Language", ""),
+                value = t.get("Value", "")
+            ))
+
     return ParseResult(
-            title = d["Title"],
-            episode = d.get("Episode"),
-            version = d.get("Version", 1),
-            start_episode = None,
-            end_episode = None,
-            group = d.get("Group", ""),
-            group_type = EnumGroupType(d["GroupType"]),
-            language = EnumLanguage(d["Language"]),
-            subtitle_type = EnumSubtitleType(d["SubtitleType"]),
-            resolution = EnumResolution(d["Resolution"]),
-            source = d.get("Source", ""),
-            web_source = d.get("WebSource", ""),
-            media_type = EnumMediaType(d["MediaType"]),
+        origin_title = d.get("OriginTitle", ""),
+        title = d.get("Title", ""),
+        titles = parsed_titles,
+        episode = d.get("Episode"),
+        version = d.get("Version", 1),
+        start_episode = d.get("StartEpisode"),  # 注意：C# JSON如果为null，get返回None
+        end_episode = d.get("EndEpisode"),
+        group = d.get("Group", ""),
+        group_type = EnumGroupType(d.get("GroupType", 0)),
+        language = EnumLanguage(d.get("Language", 7)),
+        subtitle_type = EnumSubtitleType(d.get("SubtitleType", 3)),
+        resolution = EnumResolution(d.get("Resolution", 5)),
+        source = d.get("Source", "WebRip"),
+        web_source = d.get("WebSource", ""),
+        media_type = EnumMediaType(d.get("MediaType", 0)),
+        video_codec = d.get("VideoCodec", ""),
+        audio_codec = d.get("AudioCodec", ""),
+        color_bit_depth = d.get("ColorBitDepth", -1)
     )

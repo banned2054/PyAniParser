@@ -36,9 +36,9 @@ def _default_libname() -> str :
 
 
 _GLOBALIZATION = {
-    "Simplified"  : 1,  # 简体
-    "Traditional" : 2,  # 繁体
-    "NotChange"   : 0,  # 不改变
+        "Simplified"  : 1,  # 简体
+        "Traditional" : 2,  # 繁体
+        "NotChange"   : 0,  # 不改变
 }
 
 
