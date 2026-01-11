@@ -1,62 +1,89 @@
 # PyAniParser
 
-PyAniParser 是一个用于解析动画文件名的库，专门设计用于识别和提取动画文件名中的关键信息。
+[**中文文档**](https://github.com/banned2054/PyAniParser/blob/master/Docs/README.md) | [**English Doc**](https://github.com/banned2054/PyAniParser/blob/master/README.md)
 
-## 功能特点
+**PyAniParser** is a high-performance Python wrapper for [Banned.AniParser](https://github.com/banned2054/Banned.AniParser), designed to parse anime file names. Powered by **.NET 10 Native AOT**, it provides fast and accurate extraction of metadata (titles, episodes, resolutions, etc.) from complex file naming conventions.
 
-- 支持多个字幕组/压制组的命名规则解析
-- 内置多个常用字幕组的解析支持
-- 支持批量文件解析
+> **Note**: This parser is currently optimized for **Chinese fansub naming conventions** (e.g., VCB-Studio, Nekomoe, Sakurato).
 
-## 安装
+## Features
+
+- **High Performance**: Built with .NET Native AOT for speed and efficiency.
+- **Robust Parsing**: specialized in handling complex naming schemes from various release groups.
+- **Batch Processing**: Optimized for processing large lists of files.
+- **Globalization Support**: Built-in Traditional to Simplified Chinese conversion.
+- **Type Hinting**: Fully typed for better IDE support and development experience.
+
+## Installation
 
 ```bash
 pip install pyaniparser
 ```
 
-## 使用方法
+## Usage
 
-基本使用
+### Basic Usage
 
 ```python
 from pyaniparser import AniParser
-# 单个title
+
+# Initialize the parser
 parser = AniParser()
-result = parser.parse("你的动画文件名.mp4")
-print(result.title)
-# 多个title
-items = list(parser.parse_batch(["文件1.mp4", "文件2.mp4"]))
-for result in items :
-    print(result.title)
+
+# Parse a single file
+result = parser.parse("[Nekomoe] Anime Title - 01 [1080p].mp4")
+if result:
+    print(f"Title: {result.title}")
+    print(f"Episode: {result.episode}")
+
+# Parse a batch of files (Recommended for lists)
+files = ["File1.mp4", "File2.mp4"]
+results = parser.parse_batch(files)
+
+for item in results:
+    print(item.title)
 ```
 
-### 获取支持的字幕组列表
+### Advanced Configuration (Globalization)
+
+You can configure the parser to automatically convert Traditional Chinese titles to Simplified Chinese (or vice versa) upon initialization:
+
+```python
+# Options: "Simplified", "Traditional", or "NotChange" (Default)
+parser = AniParser(globalization="Simplified")
+
+result = parser.parse("[Group] 繁體標題 - 01.mp4")
+print(result.title) # Output will be converted to Simplified Chinese
+```
+
+### Get Supported Groups
+
+You can retrieve the list of currently supported subtitle and release groups programmatically:
 
 ```python
 parser = AniParser()
-groups = parser.get_translation_parser_list()
+groups = parser.get_parser_list()
+print(groups)
 ```
 
-## 内置解析器支持
+## Supported Groups
 
-目前支持以下字幕组/压制组的命名规则(按字典顺序)，完整支持的小组列表请见：[详细列表](https://github.com/banned2054/Banned.AniParser/blob/master/Docs/SupportedGroups.md)
+PyAniParser includes built-in support for many major groups, including but not limited to:
 
+- ANi
 - 北宇治字幕组
 - 喵萌奶茶屋
 - 桜都字幕组
-- ANi
-- jsum
-- Kirara Fantasia
 - Vcb-Studio
 
-## 许可证
+For a complete list of supported groups, please refer to the [Upstream Documentation](https://github.com/banned2054/Banned.AniParser/blob/master/Docs/SupportedGroups.md).
 
-本项目采用 Apache-2.0 许可证。详情请参见 [LICENSE](LICENSE) 文件。
+## License
 
-## 贡献
+This project is licensed under the Apache-2.0 License. See the [LICENSE](https://github.com/banned2054/PyAniParser/blob/master/LICENSE) file for details.
 
-欢迎提交 Issue 和 Pull Request！
+## Contribution
 
-## 支持
+Issues and Pull Requests are welcome!
 
-如果你在使用过程中遇到任何问题，请创建 Issue。
+Since this is a wrapper, parsing logic issues should be reported to the [Core .NET Repository](https://github.com/banned2054/Banned.AniParser/issues), while Python binding issues can be reported here.
