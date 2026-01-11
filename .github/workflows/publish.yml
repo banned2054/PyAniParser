@@ -102,7 +102,7 @@ jobs:
         environment: pypi
 
         steps:
-            -   uses: actions/download-artifact@74
+            -   uses: actions/download-artifact@7
                 with:
                     pattern: wheels-*
                     path: dist
