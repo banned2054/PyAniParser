@@ -91,7 +91,7 @@ jobs:
                 run: uvx --from build python -m build --wheel --outdir dist
 
             -   name: Upload wheel artifact
-                uses: actions/upload-artifact@v6
+                uses: actions/upload-artifact@v7
                 with:
                     name: wheels-${{ matrix.platform }}
                     path: dist/*.whl
@@ -102,7 +102,7 @@ jobs:
         environment: pypi
 
         steps:
-            -   uses: actions/download-artifact@v7
+            -   uses: actions/download-artifact@v8
                 with:
                     pattern: wheels-*
                     path: dist
