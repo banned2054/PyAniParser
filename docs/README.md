@@ -1,6 +1,8 @@
 # PyAniParser
 
-[**中文文档**](https://github.com/banned2054/PyAniParser/blob/master/Docs/README.md) | [**English Doc**](https://github.com/banned2054/PyAniParser/blob/master/README.md)
+[**English**](https://github.com/banned2054/PyAniParser/blob/master/README.md) | 简体中文
+
+[![License](https://img.shields.io/badge/license-Apache_2.0-green)](../LICENSE)[![PyPI - Version](https://img.shields.io/pypi/v/pyaniparser?logo=pypi&logoColor=white)](https://pypi.org/project/pyaniparser/)[![Downloads](https://static.pepy.tech/badge/pyaniparser)](https://pepy.tech/project/pyaniparser)[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyaniparser?logo=python&logoColor=white)](https://pypi.org/project/pyaniparser/)
 
 **PyAniParser** 是 [Banned.AniParser](https://github.com/banned2054/Banned.AniParser) 的高性能 Python 封装，专为解析动画文件名而设计。它基于 **.NET 10 Native AOT** 构建，能够快速且准确地从复杂的文件命名规则中提取元数据（如标题、集数、分辨率等）。
 
