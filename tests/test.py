@@ -9,11 +9,10 @@ try :
     print("single:", ptr)
 
     # 批量
-    json_path = r"D:\Source\.Net\Banned.AniParser\Banned.AniParser.Test\bin\Debug\net9.0\result\88d33433-9b81-4a17-8017-70f89239184a.json"
+    json_path = r"C:\Code\.Net\Banned.AniParser\Banned.AniParser.Test\bin\Debug\net10.0\Data\data.json"
     with open(json_path, "r", encoding = "utf-8") as f :
         data = json.load(f)
-    files = data["TitleList"]
-    for file in files :
+    for file in data :
         ptr = ani_parser.parse(file)
         print("single:", ptr)
 finally :
