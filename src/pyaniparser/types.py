@@ -47,6 +47,33 @@ class EnumSubtitleType(IntEnum) :
     Unspecified = 3
 
 
+class EnumSource(IntEnum) :
+    WEB_DL = 0
+    WEBRip = 1
+    BDRip = 2
+    TVRip = 3
+    DVDRip = 4
+    Unknown = 5
+
+
+# JSON 字符串 -> EnumSource 的映射表（与 native EnumSourceJsonConverter 一致）
+_SOURCE_STR_MAP: dict[str, EnumSource] = {
+    "WEB-DL":  EnumSource.WEB_DL,
+    "WEBRip":  EnumSource.WEBRip,
+    "BDRip":   EnumSource.BDRip,
+    "TVRip":   EnumSource.TVRip,
+    "DVDRip":  EnumSource.DVDRip,
+    "Unknown": EnumSource.Unknown,
+}
+
+
+def _parse_source(raw: str | None) -> EnumSource :
+    """将 native 返回的 Source 字符串转换为 EnumSource 枚举。"""
+    if not raw :
+        return EnumSource.WEBRip  # 与 native 默认值一致
+    return _SOURCE_STR_MAP.get(raw, EnumSource.Unknown)
+
+
 @dataclass
 class LocalizedTitle :
     language: str
@@ -67,7 +94,7 @@ class ParseResult :
     language: EnumLanguage
     subtitle_type: EnumSubtitleType
     resolution: EnumResolution
-    source: str
+    source: EnumSource
     web_source: str
     media_type: EnumMediaType
     video_codec: str
@@ -99,7 +126,7 @@ def from_json(d: dict) -> ParseResult :
         language = EnumLanguage(d.get("Language", 7)),
         subtitle_type = EnumSubtitleType(d.get("SubtitleType", 3)),
         resolution = EnumResolution(d.get("Resolution", 5)),
-        source = d.get("Source", "WebRip"),
+        source = _parse_source(d.get("Source")),
         web_source = d.get("WebSource", ""),
         media_type = EnumMediaType(d.get("MediaType", 0)),
         video_codec = d.get("VideoCodec", ""),
