@@ -20,6 +20,10 @@ jobs:
                         platform: windows-amd64
                         wheel-tag: py3-none-win_amd64
 
+                    -   os: windows-11-arm
+                        platform: windows-arm64
+                        wheel-tag: py3-none-win_arm64
+
                     -   os: ubuntu-latest
                         platform: linux-amd64
                         wheel-tag: py3-none-manylinux_2_17_x86_64
@@ -59,6 +63,9 @@ jobs:
                     case "${{ matrix.platform }}" in
                     windows-amd64)
                       fname="Banned.AniParser.Native-windows-amd64.dll"
+                      ;;
+                    windows-arm64)
+                      fname="Banned.AniParser.Native-windows-arm64.dll"
                       ;;
                     linux-amd64)
                       fname="Banned.AniParser.Native-linux-amd64.so"
