@@ -2,7 +2,7 @@
 
 English | [**简体中文**](https://github.com/banned2054/PyAniParser/blob/master/Docs/README.md)
 
-[![License](https://img.shields.io/badge/license-Apache_2.0-green)](./LICENSE)[![PyPI - Version](https://img.shields.io/pypi/v/pyaniparser?logo=pypi&logoColor=white)](https://pypi.org/project/pyaniparser/)[![Downloads](https://static.pepy.tech/badge/pyaniparser)](https://pepy.tech/project/pyaniparser)[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyaniparser?logo=python&logoColor=white)](https://pypi.org/project/pyaniparser/)
+[![PyPI - Version](https://img.shields.io/pypi/v/pyaniparser?logo=pypi&logoColor=white)](https://pypi.org/project/pyaniparser/)[![Downloads](https://static.pepy.tech/badge/pyaniparser)](https://pepy.tech/project/pyaniparser)[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyaniparser?logo=python&logoColor=white)](https://pypi.org/project/pyaniparser/)[![License](https://img.shields.io/badge/license-Apache_2.0-green)](./LICENSE)
 
 **PyAniParser** is a high-performance Python wrapper for [Banned.AniParser](https://github.com/banned2054/Banned.AniParser), designed to parse anime file names. Powered by **.NET 10 Native AOT**, it provides fast and accurate extraction of metadata (titles, episodes, resolutions, etc.) from complex file naming conventions.
 
