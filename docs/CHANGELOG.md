@@ -6,9 +6,27 @@ This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## 📘 Versions
 
+- [🚀 Release v0.6.0 — 三明治摆烂组 Parser Support](#-release-v060--三明治摆烂组-parser-support)
 - [🚀 Release v0.5.0 — EnumSource & Windows ARM64 Support](#-release-v050--enumsource--windows-arm64-support)
 - [🚀 Release v0.4.0 — Enhanced Group Reliability & New Subtitle Support](#-release-v040--enhanced-group-reliability--new-subtitle-support)
 - [[0.3.0] - 2026-01-11](#030---2026-01-11)
+
+## 🚀 Release v0.6.0 — 三明治摆烂组 Parser Support
+
+Release Date: 2026-06-26
+
+Upgraded underlying core engine to **Banned.AniParser v0.6.0**.
+
+### ✨ Added
+
+- Added parser support for **三明治摆烂组** releases through the bundled native core.
+- Added support for smzase `.ass` subtitle file names, including `zh-hans` and `zh-hant`.
+- Added support for smzase video file names using `CHS_JPN`, `CHT_JPN`, and `CHI_JPN` language tags.
+
+### 🔧 Changed
+
+- `smzase` and `三明治摆烂组` release tags are normalized to `三明治摆烂组`.
+- `H264` / `H265` codec tags in 三明治摆烂组 releases are normalized to `AVC` / `HEVC`.
 
 ## 🚀 Release v0.5.0 — EnumSource & Windows ARM64 Support
 
