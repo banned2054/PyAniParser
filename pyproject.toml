@@ -1,6 +1,6 @@
 [project]
 name = "pyaniparser"
-version = "0.6.0"
+version = "0.6.1"
 description = "Python wrapper for Banned.AniParser (NativeAOT C ABI)"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -31,6 +31,9 @@ pure = false
 include = [
     "src/pyaniparser/lib/**",
 ]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/pyaniparser/lib" = "pyaniparser/lib"
 
 [tool.hatch.build.targets.sdist]
 include = [
