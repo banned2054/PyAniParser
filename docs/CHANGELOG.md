@@ -6,10 +6,21 @@ This format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ## 📘 Versions
 
+- [🚀 Release v0.6.1 — Native Library Packaging Fix](#-release-v061--native-library-packaging-fix)
 - [🚀 Release v0.6.0 — 三明治摆烂组 Parser Support](#-release-v060--三明治摆烂组-parser-support)
 - [🚀 Release v0.5.0 — EnumSource & Windows ARM64 Support](#-release-v050--enumsource--windows-arm64-support)
 - [🚀 Release v0.4.0 — Enhanced Group Reliability & New Subtitle Support](#-release-v040--enhanced-group-reliability--new-subtitle-support)
 - [[0.3.0] - 2026-01-11](#030---2026-01-11)
+
+## 🚀 Release v0.6.1 — Native Library Packaging Fix
+
+Release Date: 2026-07-30
+
+### 🐞 Fixed
+
+- Restored the bundled NativeAOT libraries (`.dll`, `.so`, and `.dylib`) in platform-specific wheels.
+- Fixed a Hatchling packaging configuration issue that caused the native libraries to be omitted from the v0.5.0 and v0.6.0 wheels.
+- Platform wheels are once again self-contained and no longer require users to provide the native library manually.
 
 ## 🚀 Release v0.6.0 — 三明治摆烂组 Parser Support
 
