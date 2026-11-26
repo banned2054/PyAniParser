@@ -4,7 +4,7 @@
 
 [![PyPI - Version](https://img.shields.io/pypi/v/pyaniparser?logo=pypi&logoColor=white)](https://pypi.org/project/pyaniparser/)[![Downloads](https://static.pepy.tech/badge/pyaniparser)](https://pepy.tech/project/pyaniparser)[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pyaniparser?logo=python&logoColor=white)](https://pypi.org/project/pyaniparser/)[![License](https://img.shields.io/badge/license-Apache_2.0-green)](./LICENSE)
 
-**PyAniParser** 是 [Banned.AniParser](https://github.com/banned2054/Banned.AniParser) 的高性能 Python 封装，专为解析动画文件名而设计。它基于 **.NET 10 Native AOT** 构建，能够快速且准确地从复杂的文件命名规则中提取元数据（如标题、集数、分辨率等）。
+**PyAniParser** 是 [Banned.AniParser](https://github.com/banned2054/Banned.AniParser) 的高性能 Python 封装，专为解析动画文件名而设计。它基于 **.NET 11 Native AOT** 构建，能够快速且准确地从复杂的文件命名规则中提取元数据（如标题、集数、分辨率等）。
 
 > **注意**：本解析器目前针对 **中文动漫/字幕组命名习惯**（例如 VCB-Studio、喵萌奶茶屋、桜都字幕组）进行了特别优化。
 

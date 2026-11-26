@@ -22,6 +22,7 @@ class EnumLanguage(IntEnum) :
     EngSc = 9
     EngTc = 10
     EngScTc = 11
+    JpEng = 12
 
 
 class EnumMediaType(IntEnum) :
