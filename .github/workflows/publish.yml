@@ -2,7 +2,7 @@ name: publish
 
 on:
     release:
-        types: [ published ] # 发 GitHub Release 时触发
+        types: [published] # 发 GitHub Release 时触发
 
 permissions:
     id-token: write
@@ -16,101 +16,101 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    -   os: windows-latest
-                        platform: windows-amd64
-                        wheel-tag: py3-none-win_amd64
+                    - os: windows-latest
+                      platform: windows-amd64
+                      wheel-tag: py3-none-win_amd64
 
-                    -   os: windows-11-arm
-                        platform: windows-arm64
-                        wheel-tag: py3-none-win_arm64
+                    - os: windows-11-arm
+                      platform: windows-arm64
+                      wheel-tag: py3-none-win_arm64
 
-                    -   os: ubuntu-latest
-                        platform: linux-amd64
-                        wheel-tag: py3-none-manylinux_2_17_x86_64
+                    - os: ubuntu-latest
+                      platform: linux-amd64
+                      wheel-tag: py3-none-manylinux_2_17_x86_64
 
-                    -   os: ubuntu-latest
-                        platform: linux-arm64
-                        wheel-tag: py3-none-manylinux_2_17_aarch64
+                    - os: ubuntu-latest
+                      platform: linux-arm64
+                      wheel-tag: py3-none-manylinux_2_17_aarch64
 
-                    -   os: macos-15-intel
-                        platform: macos-amd64
-                        wheel-tag: py3-none-macosx_10_9_x86_64
+                    - os: macos-15-intel
+                      platform: macos-amd64
+                      wheel-tag: py3-none-macosx_10_9_x86_64
 
-                    -   os: macos-latest
-                        platform: macos-arm64
-                        wheel-tag: py3-none-macosx_11_0_arm64
+                    - os: macos-latest
+                      platform: macos-arm64
+                      wheel-tag: py3-none-macosx_11_0_arm64
         steps:
-            -   uses: actions/checkout@v6
+            - uses: actions/checkout@v7
 
-            -   name: Download native library for current platform
-                shell: bash
-                env:
-                    GH_TOKEN: ${{ github.token }}
-                run: |
-                    set -euxo pipefail
-                    
-                    # 获取 Native 仓库最新 Release 的 tag，例如 v0.2.5
-                    tag=$(
-                      curl -fsSL \
-                        -H "Authorization: Bearer $GH_TOKEN" \
-                        -H "Accept: application/vnd.github+json" \
-                        -H "X-GitHub-Api-Version: 2022-11-28" \
-                        https://api.github.com/repos/banned2054/Banned.AniParser/releases/latest \
-                        | jq -r '.tag_name // empty'
-                    )
-                    
-                    if [ -z "$tag" ]; then
-                      echo "Failed to resolve latest Banned.AniParser release tag" >&2
-                      exit 1
-                    fi
+            - name: Download native library for current platform
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  set -euxo pipefail
 
-                    echo "Latest release tag = $tag"
-                    
-                    base="https://github.com/banned2054/Banned.AniParser/releases/download/$tag"
-                    
-                    # 根据 platform 选择文件名（与你 Release 里的名字一一对应）
-                    case "${{ matrix.platform }}" in
-                    windows-amd64)
-                      fname="Banned.AniParser.Native-windows-amd64.dll"
-                      ;;
-                    windows-arm64)
-                      fname="Banned.AniParser.Native-windows-arm64.dll"
-                      ;;
-                    linux-amd64)
-                      fname="Banned.AniParser.Native-linux-amd64.so"
-                      ;;
-                    linux-arm64)
-                      fname="Banned.AniParser.Native-linux-arm64.so"
-                      ;;
-                    macos-amd64)
-                      fname="Banned.AniParser.Native-macos-amd64.dylib"
-                      ;;
-                    macos-arm64)
-                      fname="Banned.AniParser.Native-macos-arm64.dylib"
-                      ;;
-                    *)
-                      echo "Unknown platform: ${{ matrix.platform }}" >&2
-                      exit 1
-                      ;;
-                    esac
-                    
-                    mkdir -p src/pyaniparser/lib
-                    rm -f src/pyaniparser/lib/* || true
-                    echo "Downloading $base/$fname"
-                    curl -fL "$base/$fname" -o "src/pyaniparser/lib/$fname"
+                  # 获取 Native 仓库最新 Release 的 tag，例如 v0.2.5
+                  tag=$(
+                    curl -fsSL \
+                      -H "Authorization: Bearer $GH_TOKEN" \
+                      -H "Accept: application/vnd.github+json" \
+                      -H "X-GitHub-Api-Version: 2022-11-28" \
+                      https://api.github.com/repos/banned2054/Banned.AniParser/releases/latest \
+                      | jq -r '.tag_name // empty'
+                  )
 
-            -   uses: astral-sh/setup-uv@v7
+                  if [ -z "$tag" ]; then
+                    echo "Failed to resolve latest Banned.AniParser release tag" >&2
+                    exit 1
+                  fi
 
-            -   name: Build wheel (current platform)
-                env:
-                    PYANIPARSER_WHEEL_TAG: ${{ matrix.wheel-tag }}
-                run: uvx --from build python -m build --wheel --outdir dist
+                  echo "Latest release tag = $tag"
 
-            -   name: Upload wheel artifact
-                uses: actions/upload-artifact@v7
-                with:
-                    name: wheels-${{ matrix.platform }}
-                    path: dist/*.whl
+                  base="https://github.com/banned2054/Banned.AniParser/releases/download/$tag"
+
+                  # 根据 platform 选择文件名（与你 Release 里的名字一一对应）
+                  case "${{ matrix.platform }}" in
+                  windows-amd64)
+                    fname="Banned.AniParser.Native-windows-amd64.dll"
+                    ;;
+                  windows-arm64)
+                    fname="Banned.AniParser.Native-windows-arm64.dll"
+                    ;;
+                  linux-amd64)
+                    fname="Banned.AniParser.Native-linux-amd64.so"
+                    ;;
+                  linux-arm64)
+                    fname="Banned.AniParser.Native-linux-arm64.so"
+                    ;;
+                  macos-amd64)
+                    fname="Banned.AniParser.Native-macos-amd64.dylib"
+                    ;;
+                  macos-arm64)
+                    fname="Banned.AniParser.Native-macos-arm64.dylib"
+                    ;;
+                  *)
+                    echo "Unknown platform: ${{ matrix.platform }}" >&2
+                    exit 1
+                    ;;
+                  esac
+
+                  mkdir -p src/pyaniparser/lib
+                  rm -f src/pyaniparser/lib/* || true
+                  echo "Downloading $base/$fname"
+                  curl -fL "$base/$fname" -o "src/pyaniparser/lib/$fname"
+
+            - uses: astral-sh/setup-uv@v10
+
+            - name: Build wheel (current platform)
+              env:
+                  PYANIPARSER_WHEEL_TAG: ${{ matrix.wheel-tag }}
+              run: uvx --from build python -m build --wheel --outdir dist
+
+            - name: Upload wheel artifact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: wheels-${{ matrix.platform }}
+                  path: dist/*.whl
 
     publish:
         needs: build-wheels
@@ -118,17 +118,17 @@ jobs:
         environment: pypi
 
         steps:
-            -   uses: actions/download-artifact@v8
-                with:
-                    pattern: wheels-*
-                    path: dist
-                    merge-multiple: true
+            - uses: actions/download-artifact@v8
+              with:
+                  pattern: wheels-*
+                  path: dist
+                  merge-multiple: true
 
-            -   name: List built wheels (debug)
-                run: ls -R dist
+            - name: List built wheels (debug)
+              run: ls -R dist
 
-            -   name: Publish to PyPI via OIDC
-                uses: pypa/gh-action-pypi-publish@release/v1
-                with:
-                    packages-dir: dist
-                    skip-existing: true
+            - name: Publish to PyPI via OIDC
+              uses: pypa/gh-action-pypi-publish@release/v1
+              with:
+                  packages-dir: dist
+                  skip-existing: true
