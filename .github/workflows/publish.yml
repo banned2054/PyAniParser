@@ -99,7 +99,7 @@ jobs:
                   echo "Downloading $base/$fname"
                   curl -fL "$base/$fname" -o "src/pyaniparser/lib/$fname"
 
-            - uses: astral-sh/setup-uv@v10
+            - uses: astral-sh/setup-uv@v10.4.0
 
             - name: Build wheel (current platform)
               env:
